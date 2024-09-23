@@ -31,4 +31,5 @@ class CartItemAdmin(admin.ModelAdmin):
 
 admin.site.register(Category)
 admin.site.register(Book , BookAdmin)
+admin.site.register(User, MyUserAdmin)
 # admin.site.register(Ratings)  
