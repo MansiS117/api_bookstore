@@ -1,4 +1,4 @@
-from .serializer import BookSerializer, CategorySerializer, UserRegistrationSerializer, LoginSerializer
+from .serializer import BookDetailSerializer,BookListSerializer, CategoryListSerializer,CategoryDetailSerializer, UserRegistrationSerializer, LoginSerializer
 from rest_framework.response import Response
 from rest_framework import generics, status
 from .models import Book, Category
@@ -12,19 +12,19 @@ from rest_framework.permissions import IsAuthenticated
 
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
-    serializer_class = BookSerializer
+    serializer_class = BookListSerializer
 
 class BookDetailView(generics.RetrieveAPIView):
     queryset = Book.objects.all()
-    serializer_class = BookSerializer
+    serializer_class = BookDetailSerializer
 
 class CategoryListView(generics.ListAPIView):   
     queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    serializer_class = CategoryListSerializer
 
 class CategoryDetailView(generics.RetrieveAPIView):
     queryset = Category.objects.all()   
-    serializer_class = CategorySerializer
+    serializer_class = CategoryDetailSerializer
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer

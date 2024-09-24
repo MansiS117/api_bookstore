@@ -54,14 +54,27 @@ class LoginSerializer(serializers.Serializer):
         attrs['user'] = user  # Add the authenticated user to the validated data
         return attrs
     
-class CategorySerializer(serializers.ModelSerializer):
-     class Meta:
-        model = Category
-        fields = ("name",)# or specify fields explicitly
+class BookListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = ("title", "image", "price", "author") 
 
-class BookSerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
+class CategoryListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ("name",) 
+
+class CategoryDetailSerializer(serializers.ModelSerializer):
+    books = BookListSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Category
+        fields = ("name", "books")# or specify fields explicitly
+
+
+class BookDetailSerializer(serializers.ModelSerializer):
+
     seller = UserSerializer(read_only=True)
     class Meta:
         model = Book
-        fields =  ("title", "author", "seller", "category", "price", "is_available")  # or specify fields explicitly
+        fields =  ("title", "author","image", "seller", "price", "is_available")  # or specify fields explicitly
