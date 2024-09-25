@@ -73,8 +73,22 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
 
 
 class BookDetailSerializer(serializers.ModelSerializer):
-
+    category = serializers.StringRelatedField()
     seller = UserSerializer(read_only=True)
     class Meta:
         model = Book
-        fields =  ("title", "author","image", "seller", "price", "is_available")  # or specify fields explicitly
+        fields =  ("title", "author","image", "seller","description", "price", "is_available", "category")  # or specify fields explicitly
+
+    def create(self, validated_data):
+    # Get the category name from the original input data
+        category_name = self.initial_data.get('category', None)
+    
+        if category_name:
+        # Get or create the category instance
+            category, created = Category.objects.get_or_create(name=category_name)
+            validated_data['category'] = category  # Assign the category instance to validated_data
+    
+        return super().create(validated_data)
+
+
+   
