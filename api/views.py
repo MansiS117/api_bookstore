@@ -15,9 +15,7 @@ class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookListSerializer
 
-
-
-class BookDetailView(generics.RetrieveAPIView):
+class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookDetailSerializer
 
@@ -86,11 +84,3 @@ class BookCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user) 
   
-class BookUpdateView(generics.UpdateAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BookDetailSerializer
-    permission_classes = [IsSeller]
-
-class BookDeleteView(generics.DestroyAPIView):
-    queryset = Book.objects.all()
-    permission_classes = [IsSeller]
