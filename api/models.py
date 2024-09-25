@@ -58,9 +58,54 @@ class Book(TimestampModel):
     def __str__(self):
         return self.title
 
+class Cart(TimestampModel):
+    
+    buyer = models.OneToOneField(User , on_delete= models.CASCADE , null = True , blank = True)
+
+    def __str__(self):
+        return str(self.buyer) if self.buyer else 'No Buyer'    
+
+class CartItem(TimestampModel):
+    book = models.ForeignKey(Book , on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart , on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    is_active = models.BooleanField(default= True)
+
+    def __str__(self):
+        return self.book.title
 
 
+class Order(TimestampModel):
+   buyer = models.ForeignKey(User , on_delete= models.CASCADE , null = True , blank = True)
+   total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
+   ordered_at = models.DateTimeField(auto_now_add=True) # Total price of the order
 
+   def __str__(self):
+        return f'{self.buyer} '
+
+
+class OrderItem(TimestampModel):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items')  # Link to the order
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)  # Link to the book
+    quantity = models.PositiveIntegerField()  # Number of copies ordered
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)  # Price per copy
+
+    def __str__(self):
+        return f'{self.quantity} x {self.book.title} by {self.order}'
+
+    @property
+    def total_price(self):
+        return self.quantity * self.unit_price
+
+class Profile(TimestampModel):
+    user = models.OneToOneField(User, on_delete= models.CASCADE)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    country = models.CharField(max_length=100)
+    state = models.CharField(max_length= 50)
+
+    def __str__(self):
+        return  self.user.email
 
 
 # class Ratings(models.Model):
