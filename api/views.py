@@ -7,12 +7,15 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
+from . permissions import IsSeller
 
 
 
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookListSerializer
+
+
 
 class BookDetailView(generics.RetrieveAPIView):
     queryset = Book.objects.all()
@@ -74,3 +77,20 @@ class LogoutView(APIView):
         return Response({
             "error": "No active session found."
         }, status=status.HTTP_400_BAD_REQUEST)
+    
+class BookCreateView(generics.CreateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookDetailSerializer
+    permission_classes = [IsSeller]
+
+    def perform_create(self, serializer):
+        serializer.save(seller=self.request.user) 
+  
+class BookUpdateView(generics.UpdateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookDetailSerializer
+    permission_classes = [IsSeller]
+
+class BookDeleteView(generics.DestroyAPIView):
+    queryset = Book.objects.all()
+    permission_classes = [IsSeller]
