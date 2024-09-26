@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import Book, Category, User, USER_TYPE_CHOICES
+from .models import Book, Category, User, USER_TYPE_CHOICES, Cart, CartItem
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -89,6 +90,3 @@ class BookDetailSerializer(serializers.ModelSerializer):
             validated_data['category'] = category  # Assign the category instance to validated_data
     
         return super().create(validated_data)
-
-
-   
