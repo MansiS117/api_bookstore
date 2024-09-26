@@ -30,13 +30,9 @@ class User(AbstractUser , TimestampModel):
        username = None
        phone_number = models.CharField(max_length=20, blank=True, null=True)
        address = models.TextField(blank=True, null=True)
-
-       
        email = models.EmailField(unique=True) 
-
        user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='buyer')
-
-
+       
        USERNAME_FIELD = "email"
        REQUIRED_FIELDS = [ "first_name" , "last_name"]
 
