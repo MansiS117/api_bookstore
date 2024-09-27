@@ -7,6 +7,7 @@ from django.utils.html import format_html  # Import
 
 class MyUserAdmin(UserAdmin):
     list_display = (
+        "id",
         "email",
         "first_name",
         "last_name",
@@ -27,7 +28,7 @@ class MyUserAdmin(UserAdmin):
 
 
 class BookAdmin(admin.ModelAdmin):
-    list_display = ("image_tag", "title", "author", "category", "price")
+    list_display = ("id", "image_tag", "title", "author", "category", "price")
     list_display_links = ("image_tag", "title")
 
     def image_tag(self, obj):
@@ -40,14 +41,24 @@ class BookAdmin(admin.ModelAdmin):
     image_tag.short_description = "Image"
 
 
+class CartAdmin(admin.ModelAdmin):
+    list_display = ("id", "buyer")
+    list_display_links = ("id", "buyer")
+
+
 class CartItemAdmin(admin.ModelAdmin):
-    list_display = ("cart", "book", "quantity")
+    list_display = ("id", "cart", "book", "quantity")
     list_display_links = ("cart", "book")
 
 
-admin.site.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
+    list_display_links = ("id", "name")
+
+
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Book, BookAdmin)
 admin.site.register(User, MyUserAdmin)
-admin.site.register(Cart)
-admin.site.register(CartItem)
+admin.site.register(Cart, CartAdmin)
+admin.site.register(CartItem, CartItemAdmin)
 # admin.site.register(Ratings)

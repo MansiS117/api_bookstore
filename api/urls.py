@@ -13,6 +13,7 @@ from .views import (
     LogoutView,
     UserRegistrationView,
     CartListView,
+    CartUpdateDeleteView,
 )
 
 urlpatterns = [
@@ -29,6 +30,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="user-logout"),
     path("books/create/", BookCreateView.as_view(), name="book-create"),
     path("cart/", CartListView.as_view(), name="cart"),
+    path("cart/<int:pk>/", CartUpdateDeleteView.as_view(), name="cart-update"),
 ]
 
 if settings.DEBUG:

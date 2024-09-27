@@ -112,3 +112,17 @@ class CartListView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(buyer=self.request.user)
+
+    def get_queryset(self):
+        # Return only the carts belonging to the authenticated user
+        return Cart.objects.filter(buyer=self.request.user)
+
+
+class CartUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+    permission_classes = [IsBuyer]
+
+    def get_queryset(self):
+        # Return only the carts belonging to the authenticated user
+        return CartItem.objects.filter(cart__buyer=self.request.user)

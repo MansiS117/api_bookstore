@@ -134,25 +134,11 @@ class CartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = ("book", "quantity")
 
-    def create(self, validated_data):
-        book_title = validated_data.pop("book")
-
-        # Use get() with a default to handle the case when the book does not exist
-        book_instance = Book.objects.filter(title=book_title).first()
-
-        if not book_instance:
-            raise serializers.ValidationError({"book": "Book does not exist."})
-
-        cart_item = CartItem.objects.create(
-            book=book_instance, **validated_data
-        )
-        return cart_item
-
     def update(self, instance, validated_data):
         book_title = validated_data.pop("book", None)
         if book_title:
             try:
-                book_instance = Book.objects.get(title=book_title)
+                book_instance = Book.objects.get(title__icontains=book_title)
                 instance.book = book_instance
             except Book.DoesNotExist:
                 raise serializers.ValidationError(
@@ -172,8 +158,11 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ("buyer", "items")
 
     def create(self, validated_data):
-        items_data = validated_data.pop("items")  # Extract the items data
-        cart = Cart.objects.create(
+        items_data = validated_data.pop("items")
+        # Extract the items data
+        buyer = validated_data["buyer"]
+
+        cart, created = Cart.objects.get_or_create(
             **validated_data
         )  # Create the cart instance
 
@@ -182,7 +171,7 @@ class CartSerializer(serializers.ModelSerializer):
             book_title = item_data.pop("book")  # Extract book title
             try:
                 book_instance = Book.objects.get(
-                    title=book_title
+                    title__icontains=book_title
                 )  # Look up the book by title
             except Book.DoesNotExist:
                 raise serializers.ValidationError(
@@ -193,10 +182,3 @@ class CartSerializer(serializers.ModelSerializer):
             CartItem.objects.create(cart=cart, book=book_instance, **item_data)
 
         return cart
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["items"] = CartItemSerializer(
-            instance.items.all(), many=True
-        ).data
-        return representation
