@@ -112,35 +112,25 @@ class BookDetailSerializer(serializers.ModelSerializer):
         )  # or specify fields explicitly
 
     def create(self, validated_data):
-        # Get the category name from the original input data
-        category_name = self.initial_data.get("category", None)
-
-        if category_name:
-            # Get or create the category instance
-            category, created    = Category.objects.get_or_create(
-                name=category_name
-            )
-            validated_data["category"] = (
-                category  # Assign the category instance to validated_data
-            )
-
+        # Set is_available to True if not provided
+        validated_data.setdefault("is_available", True)
         return super().create(validated_data)
-    
-    def update(self,instance, validated_data):
+
+    def save(self, **kwargs):
         # Get the category name from the original input data
         category_name = self.initial_data.get("category", None)
 
         if category_name:
             # Get or create the category instance
-            category, created    = Category.objects.get_or_create(
-                name=category_name
+            category, _ = Category.objects.get_or_create(
+                name__iexact=category_name
             )
-            validated_data["category"] = (
-                category  # Assign the category instance to validated_data
-            )
+            self.validated_data["category"] = category
 
-        return super().update(instance,validated_data)
+        # Call the parent save method to create or update the instance
+        return super().save(**kwargs)
 
+    # replacing the save method with create and update hence reducing code duplication
 
 
 class CartItemSerializer(serializers.ModelSerializer):
