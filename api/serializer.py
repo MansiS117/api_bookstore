@@ -117,7 +117,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
         if category_name:
             # Get or create the category instance
-            category, created = Category.objects.get_or_create(
+            category, created    = Category.objects.get_or_create(
                 name=category_name
             )
             validated_data["category"] = (
@@ -125,6 +125,22 @@ class BookDetailSerializer(serializers.ModelSerializer):
             )
 
         return super().create(validated_data)
+    
+    def update(self,instance, validated_data):
+        # Get the category name from the original input data
+        category_name = self.initial_data.get("category", None)
+
+        if category_name:
+            # Get or create the category instance
+            category, created    = Category.objects.get_or_create(
+                name=category_name
+            )
+            validated_data["category"] = (
+                category  # Assign the category instance to validated_data
+            )
+
+        return super().update(instance,validated_data)
+
 
 
 class CartItemSerializer(serializers.ModelSerializer):
