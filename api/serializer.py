@@ -113,7 +113,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Set is_available to True if not provided
-        validated_data.setdefault("is_available", True)
+        validated_data.setdefault('is_available', True)
         return super().create(validated_data)
 
     def save(self, **kwargs):
@@ -122,15 +122,14 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
         if category_name:
             # Get or create the category instance
-            category, _ = Category.objects.get_or_create(
-                name__iexact=category_name
-            )
+            category, _ = Category.objects.get_or_create(name__iexact=category_name)
             self.validated_data["category"] = category
-
+        
         # Call the parent save method to create or update the instance
         return super().save(**kwargs)
+    
+    #replacing the save method with create and update hence reducing code duplication
 
-    # replacing the save method with create and update hence reducing code duplication
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -149,7 +148,7 @@ class CartItemSerializer(serializers.ModelSerializer):
             except Book.DoesNotExist:
                 raise serializers.ValidationError(
                     {"book": "Book does not exist."}
-                )
+                )   
 
         instance.quantity = validated_data.get("quantity", instance.quantity)
         instance.save()
