@@ -28,7 +28,12 @@ class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookDetailSerializer
 
+    def get_queryset(self):
+        # Return only the books belonging to the authenticated seller
+        return Book.objects.filter(seller=self.request.user)
 
+
+  
 class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryListSerializer
