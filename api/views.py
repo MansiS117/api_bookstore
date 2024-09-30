@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
-from .permissions import IsSeller, IsBuyer
+from .permissions import IsSeller, IsBuyer, CanRetrieveOrIsSeller
 
 
 class BookListView(generics.ListAPIView):
@@ -27,13 +27,9 @@ class BookListView(generics.ListAPIView):
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookDetailSerializer
-
-    def get_queryset(self):
-        # Return only the books belonging to the authenticated seller
-        return Book.objects.filter(seller=self.request.user)
+    permission_classes = [CanRetrieveOrIsSeller]
 
 
-  
 class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryListSerializer
