@@ -9,19 +9,22 @@ from .serializer import (
     CartItemSerializer,
 )
 from rest_framework.response import Response
-from rest_framework import generics, status
+from rest_framework import generics, status, filters
 from .models import Book, Category, Cart, CartItem
-from rest_framework import viewsets
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsSeller, IsBuyer, CanRetrieveOrIsSeller
+from .pagination import CustomPagination
 
 
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
-    serializer_class = BookListSerializer
+    serializer_class = BookListSerializer   
+    filter_backends = [filters.SearchFilter]
+    search_fields =  ['title', 'description', 'category__name', 'author'] 
+    pagination_class = CustomPagination
 
 
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
