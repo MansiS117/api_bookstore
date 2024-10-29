@@ -3,11 +3,13 @@ from rest_framework.exceptions import ValidationError
 from .models import User
 from .serializer import UserRegistrationSerializer
 # tests.py
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIRequestFactory
 from django.urls import reverse
-from .models  import User
+from .models  import User, Book, Cart, CartItem, Order
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model 
+from rest_framework import status
+from .views import CartListView, CheckoutView
 
 # Create your tests here.
 class UserRegistrationSerializerTest(TestCase):
@@ -32,7 +34,6 @@ class UserRegistrationSerializerTest(TestCase):
 
 # tests.py
 
-User = get_user_model()  # Get the custom user model
 
 class LoginViewTest(APITestCase):
     def setUp(self):
@@ -74,3 +75,121 @@ class LoginViewTest(APITestCase):
         # Assert that the response indicates a bad request
         self.assertEqual(response.status_code, 400)
         self.assertIn('non_field_errors', response.data)  # Check for error in response
+
+
+class BookCreateViewTest(APITestCase):
+    def setUp(self):
+        self.seller_user = User.objects.create_user(email = "seller@example.com" , password="testpass", user_type = "seller")
+        self.seller_user.is_active = True
+        self.seller_user.save()
+
+        self.url = reverse('book-create')
+
+
+    def test_create_book(self):
+        self.client.force_authenticate(user = self.seller_user)
+
+        data = {
+            'title' : 'Test Book',
+            'author' : 'Test Author',
+            'price' : 100,
+            'description' : 'A book for testing purposes'
+        }
+
+        response = self.client.post(self.url, data, format = 'json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(Book.objects.count(), 1)
+        self.assertEqual(Book.objects.get().title, "Test Book")
+
+    def test_create_book_unauthenticated(self):
+        data = {
+            'title': 'Another Test Book',
+            'author': 'Test Author',
+            'price': 12.99,
+            'description': 'A book for testing purposes.'
+        }
+        response = self.client.post(self.url, data, format='json')
+        # Assert that the response status code is 403 Forbidden
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+
+class CartListViewTest(APITestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.buyer_user = User.objects.create_user(
+            email="buyer@example.com",
+            password="testpass",
+            user_type="buyer"
+        )
+        self.seller_user = User.objects.create_user(
+            email="seller@example.com",
+            password="testpass",
+            user_type="seller"
+        )
+        self.cart = Cart.objects.create(buyer=self.buyer_user)
+        
+        # Create a Book instance and assign it to the seller
+        self.book = Book.objects.create(
+            title="Test Book",
+            author="Test Author",
+            price=100,
+            description="A book for testing purposes",
+            seller=self.seller_user  # Set the seller
+        )
+        
+        # URL for the cart list endpoint
+        self.url = reverse('cart')  # Adjusted to match your URL pattern name
+
+    def test_create_cart_authenticated(self):
+        # Authenticate the user
+        self.client.force_authenticate(user=self.buyer_user)
+
+        # Data for creating a cart
+        cart_data = {
+            "items": [
+                {"book": "Test Book", "quantity": 2}
+            ]
+        }
+
+        # Make the request with the client
+        response = self.client.post(self.url, cart_data, format='json')
+
+        # Check the response status
+        
+        # Assertions
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class CheckoutViewTest(APITestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.buyer_user = User.objects.create_user(
+            email="buyer@example.com",
+            password="testpass",
+            user_type="buyer"
+        )
+
+        # Create a cart for the buyer
+        self.cart = Cart.objects.create(buyer=self.buyer_user)
+
+        # Create a book and add it to the cart
+        self.book = Book.objects.create(
+            title="Test Book",
+            author="Test Author",
+            price=100,
+            description="A book for testing purposes",
+            seller=self.buyer_user  # Assuming the buyer is also a seller for this test
+        )
+        
+        self.cart_item = CartItem.objects.create(
+            cart=self.cart,
+            book=self.book,
+            quantity=2
+        )
+
+        self.url = reverse('checkout')  # Adjust to your actual URL pattern
+
+   
+
