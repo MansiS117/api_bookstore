@@ -14,6 +14,9 @@ from .views import (
     UserRegistrationView,
     CartListView,
     CartUpdateDeleteView,
+    CheckoutView,
+    OrderView,
+    OrderListView
 )
 
 urlpatterns = [
@@ -31,6 +34,19 @@ urlpatterns = [
     path("books/create/", BookCreateView.as_view(), name="book-create"),
     path("cart/", CartListView.as_view(), name="cart"),
     path("cart/<int:pk>/", CartUpdateDeleteView.as_view(), name="cart-update"),
+    path(
+        "checkout/", CheckoutView.as_view(), name="checkout"
+    ),  # Use as_view() for class-based view
+    path(
+        "orders/<int:order_id>/",
+        OrderView.as_view(),
+        name="order_confirmation",
+    ),
+    path(
+        "orders/",
+        OrderListView.as_view(),
+        name="order_list",
+    ),
 ]
 
 if settings.DEBUG:

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Book, User, Cart, CartItem
+from .models import Category, Book, User, Cart, CartItem, Order, OrderItem
 from django.contrib.auth.admin import UserAdmin
 
 from django.utils.html import format_html  # Import
@@ -56,9 +56,21 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ("id", "name")
 
 
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "buyer", "total_price", "ordered_at")
+    list_display_links = ("id", "buyer")
+
+
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ("id", "order", "book", "quantity", "unit_price")
+    list_display_links = ("id", "order", "book")
+
+
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Book, BookAdmin)
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(CartItem, CartItemAdmin)
+admin.site.register(Order, OrderAdmin)
+admin.site.register(OrderItem, OrderItemAdmin)
 # admin.site.register(Ratings)
