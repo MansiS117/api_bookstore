@@ -1,6 +1,15 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import Book, Category, User, USER_TYPE_CHOICES, Cart, CartItem
+from .models import (
+    Book,
+    Category,
+    User,
+    USER_TYPE_CHOICES,
+    Cart,
+    CartItem,
+    Order,
+    OrderItem,
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -112,19 +121,25 @@ class BookDetailSerializer(serializers.ModelSerializer):
         )  # or specify fields explicitly
 
     def create(self, validated_data):
+        # Set is_available to True if not provided
+        validated_data.setdefault("is_available", True)
+        return super().create(validated_data)
+
+    def save(self, **kwargs):
         # Get the category name from the original input data
         category_name = self.initial_data.get("category", None)
 
         if category_name:
             # Get or create the category instance
-            category, created = Category.objects.get_or_create(
-                name=category_name
+            category, _ = Category.objects.get_or_create(
+                name__iexact=category_name
             )
-            validated_data["category"] = (
-                category  # Assign the category instance to validated_data
-            )
+            self.validated_data["category"] = category
 
-        return super().create(validated_data)
+        # Call the parent save method to create or update the instance
+        return super().save(**kwargs)
+
+    # replacing the save method with create and update hence reducing code duplication
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -152,6 +167,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True)
+    buyer = serializers.StringRelatedField()
 
     class Meta:
         model = Cart
@@ -182,3 +198,23 @@ class CartSerializer(serializers.ModelSerializer):
             CartItem.objects.create(cart=cart, book=book_instance, **item_data)
 
         return cart
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    book = serializers.StringRelatedField()
+
+    class Meta:
+        model = OrderItem
+        fields = ("book", "quantity", "unit_price")
+        read_only = "unit_price"
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    order_items = OrderItemSerializer(many=True)
+    buyer = serializers.StringRelatedField()
+
+    class Meta:
+        model = Order
+        fields = ("buyer", "total_price", "ordered_at", "order_items")
+
+
