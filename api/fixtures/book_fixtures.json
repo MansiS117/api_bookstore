@@ -1,0 +1,21 @@
+[
+    {
+      "model": "api.book",
+      "pk": 1,
+      "fields": {
+        "title": "Example Book 1",
+        "price": 20.0,
+        "seller" : 2
+      }
+    },
+    {
+      "model": "api.book",
+      "pk": 2,
+      "fields": {
+        "title": "Example Book 2",
+        "price": 15.0,
+        "seller" : 2
+      }
+    }
+  ]
+  

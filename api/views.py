@@ -7,21 +7,27 @@ from .serializer import (
     LoginSerializer,
     CartSerializer,
     CartItemSerializer,
+    OrderItemSerializer,
+    OrderSerializer,
 )
 from rest_framework.response import Response
-from rest_framework import generics, status
-from .models import Book, Category, Cart, CartItem
-from rest_framework import viewsets
+from rest_framework import generics, status, filters, mixins
+from .models import Book, Category, Cart, CartItem, Order, OrderItem
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsSeller, IsBuyer, CanRetrieveOrIsSeller
+from .pagination import CustomPagination
+from django.shortcuts import get_object_or_404
 
 
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookListSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["title", "description", "category__name", "author"]
+    pagination_class = CustomPagination
 
 
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -127,3 +133,68 @@ class CartUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         # Return only the carts belonging to the authenticated user
         return CartItem.objects.filter(cart__buyer=self.request.user)
+
+
+class CheckoutView(APIView):
+    permission_classes = [IsBuyer]
+
+    def post(self, request):
+        cart = get_object_or_404(Cart, buyer=request.user)
+
+        total_price = 0
+        order_items = []
+
+        for cart_item in cart.items.all():
+            total_price += cart_item.book.price * cart_item.quantity
+            order_items.append(
+                {
+                    "book": cart_item.book,
+                    "quantity": cart_item.quantity,
+                    "unit_price": cart_item.book.price,
+                }
+            )
+
+        order = Order.objects.create(
+            buyer=request.user, total_price=total_price
+        )
+
+        for item in order_items:
+            OrderItem.objects.create(
+                order=order,
+                book=item["book"],
+                quantity=item["quantity"],
+                unit_price=item["unit_price"],
+            )
+
+        cart.items.all().delete()
+        cart.delete()
+
+        
+        response_data = {
+            "message": "Checkout successful!",
+            "order_id": order.id,
+            "total_price": total_price,
+        }
+
+        return Response(
+            response_data, status=status.HTTP_201_CREATED
+        )  # Directly returning response data
+
+
+class OrderView(generics.RetrieveAPIView):
+  
+    serializer_class = OrderSerializer
+    permission_classes = [IsBuyer]
+
+    def get_object(self):
+        order_id = self.kwargs.get(
+            "order_id"
+        )  # Since the order id is passed as order_id
+        order = get_object_or_404(Order, id=order_id, buyer=self.request.user)
+        return order
+    
+class OrderListView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsBuyer]
+    def get_queryset(self):
+         return Order.objects.filter(buyer=self.request.user)
